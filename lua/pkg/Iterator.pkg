@@ -1,0 +1,19 @@
+$#include "Iterator.h"
+$#include "Descriptor.h"
+$#include "PatSection.h"
+$#include "PmtSection.h"
+
+$renaming Iterator<Descriptor> @ DescriptorIterator
+$renaming Iterator<PatSection::Program> @ ProgramIterator
+$renaming Iterator<PmtSection::Stream> @ StreamIterator
+
+class Iterator<T> {
+	TEMPLATE_BIND(T, Descriptor, PatSection::Program, PmtSection::Stream)
+	
+	/*Iterator(unsigned char *start, unsigned length);*/
+	~Iterator();
+	
+	bool hasNext() const;
+	unsigned char *getNext(unsigned &length);
+	unsigned getNextLength();
+};

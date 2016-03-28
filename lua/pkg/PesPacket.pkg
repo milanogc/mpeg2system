@@ -1,0 +1,53 @@
+$#include "PesPacket.h"
+
+#define PROGRAM_STREAM_MAP              0xBC
+#define PRIVATE_STREAM_1                0xBD
+#define PADDING_STREAM                  0xBE
+#define PRIVATE_STREAM_2                0xBF
+#define ECM_STREAM                      0xF0
+#define EMM_STREAM                      0xF1
+#define PROGRAM_STREAM_DIRECTORY        0xFF
+#define DSMCC_STREAM                    0xF2
+#define ITU_T_REC_H_222_1_TYPE_E_STREAM 0xF8
+
+class PesPacket : public Chunk {
+	/*PesPacket(unsigned char *d, unsigned l);*/
+	PesPacket();
+	~PesPacket();
+	
+	/* -- decoding -- */
+	
+	unsigned getPacketStartCodePrefix() const; /* 24 */
+	unsigned getStreamId() const; /* 8 */
+	unsigned getPesPacketLength() const; /* 16 */
+	unsigned getPesScramblingControl() const; /* 2 */ /* TODO enum */
+	bool getPesPriority() const; /* 1 */
+	bool getDataAlignmentIndicator() const; /* 1 */
+	bool getCopyright() const; /* 1 */
+	unsigned getOriginalOrCopy() const;
+	unsigned getPtsDtsFlags() const; /* 2 */
+	bool getEscrFlag() const;
+	bool getEsRateFlag() const;
+	bool getDsmTrickModeFlag() const;
+	bool getAdditionalCopyInfoFlag() const;
+	bool getPesCrcFlag() const;
+	bool getPesExtensionFlag() const;
+	unsigned getPesHeaderDataLength() const;
+	bool hasPts() const;
+	unsigned long long getPts() const; /* 33 */
+	bool hasDts() const;
+	unsigned long long getDts() const; /* 33 */
+	bool hasEscr() const;
+	unsigned long long getEscrBase() const;
+	unsigned getEscrExtension() const;
+	
+	bool verify() const;
+	
+	/* -- coding -- */
+	
+	void setPacketStartCodePrefix(unsigned prefix); /* 24 */
+	void setStreamId(unsigned id); /* 8 */
+	void setPesPacketLength(unsigned packetLength); /* 16 */
+	
+	void finalize();
+};

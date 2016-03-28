@@ -1,0 +1,127 @@
+$#include "TSPacket.h"
+
+enum AdaptFieldControl {
+	AFC_RESERVED = 0, /* reserved */
+	AFC_ONLY_PAYLOAD, /* only payload */
+	AFC_ONLY_ADAPT_FIELD, /* only adaption field */
+	AFC_BOTH_PAYLOAD_AND_ADAPT_FIELD /* both payload and adaption field */
+};
+
+enum ScramblingControl {
+	SC_NOT_SCRAMBLED = 0,
+	SC_USER_DEFINED_1,
+	SC_USER_DEFINED_2,
+	SC_USER_DEFINED_3
+};
+
+class TSPacket : public Chunk {
+	static const unsigned PACKET_SIZE;
+	static const unsigned MAX_PAYLOAD_SIZE;
+	static const unsigned STUFFING_BYTE;
+	static const unsigned SYNC_BYTE;
+	
+	/*TSPacket(unsigned char *d);*/
+	TSPacket();
+	~TSPacket();
+	
+	/* --- basic --- */
+	
+	/* --- packet decoding --- */
+	
+	/* packet header */
+	
+	unsigned getSyncByte() const; /* 8 */
+	bool getTransportErrorIndicator() const; /* 1 */
+	bool getPayloadUnitStartIndicator() const; /* 1 */
+	bool getTransportPriority() const; /* 1 */
+	int getPid() const; /* 13 */
+	ScramblingControl getTransportScramblingControl() const; /* 2 */
+	AdaptFieldControl getAdaptationFieldControl() const; /* 2 */
+	unsigned getContinuityCounter() const; /* 4 */
+	
+	/* adaptation field */
+	
+	bool hasAdaptationField() const;
+	unsigned getAdaptationFieldLength() const;
+	bool getDiscontinuityIndicator() const;
+	bool getRandomAccessIndicator() const;
+	bool getElementaryStreamPriorityIndicator();
+	bool getPcrFlag() const;
+	bool getOpcrFlag() const;
+	bool getSplicingPointFlag() const;
+	bool getTransportPrivateDataFlag() const;
+	bool getAdaptationFieldExtensionFlag() const;
+	bool hasPcr() const;
+	unsigned long long getPcrBase() const; /* 33 */
+	unsigned getPcrExtension() const; /* 9 */
+	bool hasOriginalPcr() const;
+	unsigned long long getOriginalPcrBase() const; /* 33 */
+	unsigned getOriginalPcrExtension() const; /* 9 */
+	bool hasSpliceCountdown() const;
+	unsigned getSpliceCountdown() const; /* 8 */
+	bool hasTransportPrivateData() const;
+	unsigned getTransportPrivateDataLength() const; /* 8 */
+	unsigned char *getTransportDataBytes(unsigned &length) const;
+	bool hasAdaptationFieldExtension() const;
+	unsigned getAdaptationFieldExtensionLength() const;
+	bool getLtwFlag() const;
+	bool getPiecewiseRateFlag() const;
+	bool getSeamlessSpliceFlag() const;
+	bool hasLtw() const;
+	bool getLtwValidFlag() const;
+	unsigned getLtwOffset() const; /* 15 */
+	bool hasPiecewiseRate() const;
+	unsigned getPiecewiseRate() const; /* 22 */
+	bool hasSeamlessSplice() const;
+	unsigned getSpliceType() const; /* 4 */
+	unsigned long long getDtsNextAu() const; /* 33 */
+	
+	/* payload */
+	
+	unsigned getPayloadLength() const;
+	unsigned char *getPayload(unsigned &length = 0) const;
+	
+	/* --- packet coding --- */
+	
+	/* packet header */
+	
+	void setTransportErrorIndicator(bool transportError); /* 1 */
+	void setPayloadUnitStartIndicator(bool payloadUnitStart); /* 1 */
+	void setTransportPriority(bool transportPriority); /* 1 */
+	void setPid(int pid); /* 13 */
+	void setTransportScramblingControl(ScramblingControl scramblingControl); /* 2 */
+	void setAdaptationFieldControl(AdaptFieldControl adaptionFieldControl); /* 2 */
+	void setContinuityCounter(unsigned continuityCounter); /* 4 */
+	void incContinuityCounter();
+	
+	/* adaptation field */
+	
+	void setAdaptationFieldLength(unsigned aFieldLength);
+	void setDiscontinuityIndicator(bool indicator);
+	void setRandomAccessIndicator(bool indicator);
+	void setElementaryStreamPriorityIndicator(bool indicator);
+	void setPcrFlag(bool flag);
+	void setOpcrFlag(bool flag);
+	void setSplicingPointFlag(bool flag);
+	void setTransportPrivateDataFlag(bool flag);
+	void setAdaptationFieldExtensionFlag(bool flag);
+	void setPcrBase(unsigned long long pcrBase); /* 33 */
+	void setPcrExtension(unsigned pcrExtension); /* 9 */
+	void setOriginalPcrBase(unsigned long long pcrBase); /* 33 */
+	void setOriginalPcrExtension(unsigned pcrExtension); /* 9 */
+	void setSpliceCountdown(unsigned countdown); /* 8 */
+	void setTransportPrivateDataLength(unsigned dataLength); /* 8 */ /* TODO remove */
+	void setTransportDataBytes(unsigned char *dataBytes, unsigned dataLength);
+	void setAdaptationFieldExtensionLength(bool flag);
+	void setLtwFlag(bool flag);
+	void setPiecewiseRateFlag(bool flag);
+	void setSeamlessSpliceFlag(bool flag);
+	void setLtwValidFlag(bool flag);
+	void setLtwOffset(unsigned offset); /* 15 */
+	void setPiecewiseRate(unsigned rate); /* 22 */
+	void setSpliceType(unsigned spliceType); /* 4 */
+	void setDtsNextAu(unsigned long long dtsNextAu); /* 33 */
+	
+	/* payload */
+	void setPayload(unsigned char *d, unsigned length);
+};

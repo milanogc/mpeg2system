@@ -1,0 +1,8 @@
+Files related to the binding of the API to the Lua programming language.
+
+1. Setting the Lua environment
+
+PATH=%PATH%;C:\Lua\bin
+LUA_INIT=@C:\Lua\modules\lua.lua
+LUA_PATH=C:\Lua\modules\?.lua;?.lua
+LUA_PATHLIB=C:\Lua\modules\?.dll;?.dll

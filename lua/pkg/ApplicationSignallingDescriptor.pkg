@@ -1,0 +1,11 @@
+$#include "ApplicationSignallingDescriptor.h"
+
+class ApplicationSignallingDescriptor : public Descriptor {
+public:
+	static const unsigned TAG;
+	
+	/*ApplicationSignallingDescriptor(unsigned char *d, unsigned l);*/
+	ApplicationSignallingDescriptor();
+	
+	void appendAppTypeAndAitVersion(unsigned appType, unsigned aitVersion);
+};

@@ -1,0 +1,16 @@
+$#include "CarouselIdentifierDescriptor.h"
+
+class CarouselIdentifierDescriptor : public Descriptor{
+public:
+	static const unsigned TAG;
+	
+	/*CarouselIdentifierDescriptor(unsigned char *d, unsigned l);*/
+	CarouselIdentifierDescriptor();
+	
+	unsigned getCarouselId() const;
+	unsigned getFormatId() const;
+	
+	void setCarouselId(unsigned id) const;
+	void setFormatId(unsigned id) const;
+};
+

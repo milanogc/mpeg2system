@@ -1,0 +1,430 @@
+$#include "Chunk.h"
+
+class Chunk {
+	Chunk(unsigned char *d, unsigned l);
+	virtual ~Chunk();
+	
+	unsigned char *getData() const;
+	bool isAllocated() const;
+	void setData(unsigned char *d, unsigned l = 0);
+	virtual unsigned getDataLength() const;
+	virtual void finalize();
+	virtual bool verify() const;
+};
+$#include "Iterator.h"
+$#include "Descriptor.h"
+$#include "PatSection.h"
+$#include "PmtSection.h"
+
+$renaming Iterator<Descriptor> @ DescriptorIterator
+$renaming Iterator<PatSection::Program> @ ProgramIterator
+$renaming Iterator<PmtSection::Stream> @ StreamIterator
+
+class Iterator<T> {
+	TEMPLATE_BIND(T, Descriptor, PatSection::Program, PmtSection::Stream)
+	
+	/*Iterator(unsigned char *start, unsigned length);*/
+	~Iterator();
+	
+	bool hasNext() const;
+	unsigned char *getNext(unsigned &length);
+	unsigned getNextLength();
+};
+$#include "TSPacket.h"
+
+enum AdaptFieldControl {
+	AFC_RESERVED = 0, /* reserved */
+	AFC_ONLY_PAYLOAD, /* only payload */
+	AFC_ONLY_ADAPT_FIELD, /* only adaption field */
+	AFC_BOTH_PAYLOAD_AND_ADAPT_FIELD /* both payload and adaption field */
+};
+
+enum ScramblingControl {
+	SC_NOT_SCRAMBLED = 0,
+	SC_USER_DEFINED_1,
+	SC_USER_DEFINED_2,
+	SC_USER_DEFINED_3
+};
+
+class TSPacket : public Chunk {
+	static const unsigned PACKET_SIZE;
+	static const unsigned MAX_PAYLOAD_SIZE;
+	static const unsigned STUFFING_BYTE;
+	static const unsigned SYNC_BYTE;
+	
+	/*TSPacket(unsigned char *d);*/
+	TSPacket();
+	~TSPacket();
+	
+	/* --- basic --- */
+	
+	/* --- packet decoding --- */
+	
+	/* packet header */
+	
+	unsigned getSyncByte() const; /* 8 */
+	bool getTransportErrorIndicator() const; /* 1 */
+	bool getPayloadUnitStartIndicator() const; /* 1 */
+	bool getTransportPriority() const; /* 1 */
+	int getPid() const; /* 13 */
+	ScramblingControl getTransportScramblingControl() const; /* 2 */
+	AdaptFieldControl getAdaptationFieldControl() const; /* 2 */
+	unsigned getContinuityCounter() const; /* 4 */
+	
+	/* adaptation field */
+	
+	bool hasAdaptationField() const;
+	unsigned getAdaptationFieldLength() const;
+	bool getDiscontinuityIndicator() const;
+	bool getRandomAccessIndicator() const;
+	bool getElementaryStreamPriorityIndicator();
+	bool getPcrFlag() const;
+	bool getOpcrFlag() const;
+	bool getSplicingPointFlag() const;
+	bool getTransportPrivateDataFlag() const;
+	bool getAdaptationFieldExtensionFlag() const;
+	bool hasPcr() const;
+	unsigned long long getPcrBase() const; /* 33 */
+	unsigned getPcrExtension() const; /* 9 */
+	bool hasOriginalPcr() const;
+	unsigned long long getOriginalPcrBase() const; /* 33 */
+	unsigned getOriginalPcrExtension() const; /* 9 */
+	bool hasSpliceCountdown() const;
+	unsigned getSpliceCountdown() const; /* 8 */
+	bool hasTransportPrivateData() const;
+	unsigned getTransportPrivateDataLength() const; /* 8 */
+	unsigned char *getTransportDataBytes(unsigned &length) const;
+	bool hasAdaptationFieldExtension() const;
+	unsigned getAdaptationFieldExtensionLength() const;
+	bool getLtwFlag() const;
+	bool getPiecewiseRateFlag() const;
+	bool getSeamlessSpliceFlag() const;
+	bool hasLtw() const;
+	bool getLtwValidFlag() const;
+	unsigned getLtwOffset() const; /* 15 */
+	bool hasPiecewiseRate() const;
+	unsigned getPiecewiseRate() const; /* 22 */
+	bool hasSeamlessSplice() const;
+	unsigned getSpliceType() const; /* 4 */
+	unsigned long long getDtsNextAu() const; /* 33 */
+	
+	/* payload */
+	
+	unsigned getPayloadLength() const;
+	unsigned char *getPayload(unsigned &length = 0) const;
+	
+	/* --- packet coding --- */
+	
+	/* packet header */
+	
+	void setTransportErrorIndicator(bool transportError); /* 1 */
+	void setPayloadUnitStartIndicator(bool payloadUnitStart); /* 1 */
+	void setTransportPriority(bool transportPriority); /* 1 */
+	void setPid(int pid); /* 13 */
+	void setTransportScramblingControl(ScramblingControl scramblingControl); /* 2 */
+	void setAdaptationFieldControl(AdaptFieldControl adaptionFieldControl); /* 2 */
+	void setContinuityCounter(unsigned continuityCounter); /* 4 */
+	void incContinuityCounter();
+	
+	/* adaptation field */
+	
+	void setAdaptationFieldLength(unsigned aFieldLength);
+	void setDiscontinuityIndicator(bool indicator);
+	void setRandomAccessIndicator(bool indicator);
+	void setElementaryStreamPriorityIndicator(bool indicator);
+	void setPcrFlag(bool flag);
+	void setOpcrFlag(bool flag);
+	void setSplicingPointFlag(bool flag);
+	void setTransportPrivateDataFlag(bool flag);
+	void setAdaptationFieldExtensionFlag(bool flag);
+	void setPcrBase(unsigned long long pcrBase); /* 33 */
+	void setPcrExtension(unsigned pcrExtension); /* 9 */
+	void setOriginalPcrBase(unsigned long long pcrBase); /* 33 */
+	void setOriginalPcrExtension(unsigned pcrExtension); /* 9 */
+	void setSpliceCountdown(unsigned countdown); /* 8 */
+	void setTransportPrivateDataLength(unsigned dataLength); /* 8 */ /* TODO remove */
+	void setTransportDataBytes(unsigned char *dataBytes, unsigned dataLength);
+	void setAdaptationFieldExtensionLength(bool flag);
+	void setLtwFlag(bool flag);
+	void setPiecewiseRateFlag(bool flag);
+	void setSeamlessSpliceFlag(bool flag);
+	void setLtwValidFlag(bool flag);
+	void setLtwOffset(unsigned offset); /* 15 */
+	void setPiecewiseRate(unsigned rate); /* 22 */
+	void setSpliceType(unsigned spliceType); /* 4 */
+	void setDtsNextAu(unsigned long long dtsNextAu); /* 33 */
+	
+	/* payload */
+	void setPayload(unsigned char *d, unsigned length);
+};
+$#include "PesPacket.h"
+
+#define PROGRAM_STREAM_MAP              0xBC
+#define PRIVATE_STREAM_1                0xBD
+#define PADDING_STREAM                  0xBE
+#define PRIVATE_STREAM_2                0xBF
+#define ECM_STREAM                      0xF0
+#define EMM_STREAM                      0xF1
+#define PROGRAM_STREAM_DIRECTORY        0xFF
+#define DSMCC_STREAM                    0xF2
+#define ITU_T_REC_H_222_1_TYPE_E_STREAM 0xF8
+
+class PesPacket : public Chunk {
+	/*PesPacket(unsigned char *d, unsigned l);*/
+	PesPacket();
+	~PesPacket();
+	
+	/* -- decoding -- */
+	
+	unsigned getPacketStartCodePrefix() const; /* 24 */
+	unsigned getStreamId() const; /* 8 */
+	unsigned getPesPacketLength() const; /* 16 */
+	unsigned getPesScramblingControl() const; /* 2 */ /* TODO enum */
+	bool getPesPriority() const; /* 1 */
+	bool getDataAlignmentIndicator() const; /* 1 */
+	bool getCopyright() const; /* 1 */
+	unsigned getOriginalOrCopy() const;
+	unsigned getPtsDtsFlags() const; /* 2 */
+	bool getEscrFlag() const;
+	bool getEsRateFlag() const;
+	bool getDsmTrickModeFlag() const;
+	bool getAdditionalCopyInfoFlag() const;
+	bool getPesCrcFlag() const;
+	bool getPesExtensionFlag() const;
+	unsigned getPesHeaderDataLength() const;
+	bool hasPts() const;
+	unsigned long long getPts() const; /* 33 */
+	bool hasDts() const;
+	unsigned long long getDts() const; /* 33 */
+	bool hasEscr() const;
+	unsigned long long getEscrBase() const;
+	unsigned getEscrExtension() const;
+	
+	bool verify() const;
+	
+	/* -- coding -- */
+	
+	void setPacketStartCodePrefix(unsigned prefix); /* 24 */
+	void setStreamId(unsigned id); /* 8 */
+	void setPesPacketLength(unsigned packetLength); /* 16 */
+	
+	void finalize();
+};
+$#include "Descriptor.h"
+
+class Descriptor : public Chunk {
+public:
+	static const unsigned MAX_LENGTH;
+	
+	/*Descriptor(unsigned char *d, unsigned l);*/
+	Descriptor(unsigned char *d);
+	Descriptor();
+	~Descriptor();
+	
+	/* decoding */
+	unsigned getDescriptorTag() const; /* 8 */
+	unsigned getDescriptorLength() const; /* 8 */
+};
+$#include "Section.h"
+
+class Section : public Chunk {
+	/*Section(unsigned char *d, unsigned l);*/
+	Section();
+	~Section();
+	
+	/* --- section decoding --- */
+	
+	unsigned getTableId() const; /* 8 */
+	bool getSectionSyntaxIndicator() const; /* 1 */
+	bool getPrivateIndicator() const; /* 1 */
+	unsigned getSectionLength() const; /* 12 */
+	
+	/* --- section coding --- */
+	
+	void setSectionLength(unsigned length); /* 12 */
+};
+$#include "PsiSection.h"
+
+class PsiSection : public Section {
+	/*PsiSection(unsigned char *d, unsigned l);*/
+	PsiSection();
+	~PsiSection();
+	
+	unsigned getTableIdExtension() const; /* 16 */
+	unsigned getVersionNumber() const; /* 5 */
+	bool getCurrentNextIndicator() const; /* 1 */
+	unsigned getSectionNumber() const; /* 8 */
+	unsigned getLastSectionNumber() const; /* 8 */
+	unsigned getCrc32() const; /* 32 */
+	
+	virtual void setTableIdExtension(unsigned id); /* 16 */
+	void setVersionNumber(unsigned version); /* 5 */
+	void setCurrentNextIndicator(bool indicator); /* 1 */
+	void setSectionNumber(unsigned number); /* 8 */
+	void setLastSectionNumber(unsigned number); /* 8 */
+};
+$#include "PatSection.h"
+
+class PatSection : public PsiSection {
+	class Program : public Chunk {
+		/*Program(unsigned char *d);*/
+		Program();
+		~Program();
+		
+		/* --- decoding --- */
+		
+		unsigned getProgramNumber() const; /* 16 */
+		int getPid() const; /* 13 */
+		
+		/* --- coding --- */
+		
+		void setProgramNumber(unsigned number); /* 16 */
+		void setPid(int pid); /* 13 */
+	};
+	
+	/*PatSection(unsigned char *d, unsigned l);*/
+	PatSection();
+	~PatSection();
+	
+	Iterator<Program> *getProgramsIterator() const;
+	
+	/* --- decoding --- */
+	
+	unsigned getTransportStreamId() const;
+	
+	/* --- coding --- */
+	
+	void setTransportStreamId(unsigned id);
+	void appendProgram(unsigned char *programData, unsigned programDataLength);
+};
+$#include "PmtSection.h"
+
+class PmtSection : public PsiSection {
+	class Stream : public Chunk {
+		/*Stream(unsigned char *d, unsigned l);
+		Stream(unsigned char *d);*/
+		Stream();
+		
+		/* --- decoding --- */
+		
+		unsigned getStreamType() const; /* 8 */
+		int getElementaryPid() const; /* 13 */
+		unsigned getEsInfoLength() const; /* 12 */
+		Iterator<Descriptor> *getDescriptorsIterator() const;
+		
+		/* --- coding --- */
+		
+		void setStreamType(unsigned type); /* 8 */
+		void setElementaryPid(int pid); /* 13 */
+		void setEsInfoLength(unsigned length); /* 12 */
+		void appendDescriptor(unsigned char *descriptorData, unsigned descriptorDataLength);
+		void appendDescriptor(Descriptor &descriptorData);
+	};
+	
+	/*PmtSection(unsigned char *d, unsigned l);*/
+	PmtSection();
+	
+	/* --- decoding --- */
+	
+	unsigned getProgramNumber() const;
+	int getPcrPid() const;
+	unsigned getProgramInfoLength() const;
+	Iterator<Descriptor> *getDescriptorsIterator() const;
+	Iterator<Stream> *getStreamsIterator() const;
+	
+	/* --- coding --- */
+	
+	void setProgramNumber(unsigned id); /* 16 */
+	void setPcrPid(int pid);
+	void setProgramInfoLength(unsigned length);
+	void appendDescriptor(unsigned char *descriptorData, unsigned descriptorLength);
+	void appendStream(unsigned char *streamData, unsigned streamLength);
+	void appendStream(Stream &stream);
+};
+$#include "ApplicationSignallingDescriptor.h"
+
+class ApplicationSignallingDescriptor : public Descriptor {
+public:
+	static const unsigned TAG;
+	
+	/*ApplicationSignallingDescriptor(unsigned char *d, unsigned l);*/
+	ApplicationSignallingDescriptor();
+	
+	void appendAppTypeAndAitVersion(unsigned appType, unsigned aitVersion);
+};
+$#include "AssociationTagDescriptor.h"
+
+class AssociationTagDescriptor : public Descriptor {
+public:
+	static const unsigned TAG;
+	
+	/*AssociationTagDescriptor(unsigned char *d, unsigned l);*/
+	AssociationTagDescriptor();
+	~AssociationTagDescriptor();
+	
+	unsigned getAssociationTag() const;
+	unsigned getUse() const;
+	unsigned getSelectorLength() const;
+	unsigned char *getSelector(unsigned &selectorLength) const;
+	bool hasTransactionId() const;
+	unsigned getTransactionId() const;
+	bool hasTimeout() const;
+	unsigned getTimeout() const;
+	unsigned char* getPrivateData(unsigned &privateDataLength) const;
+	
+	void setAssociationTag(unsigned tag);
+	void setUse(unsigned use);
+	void setSelectorLength(unsigned length);
+	void setSelector(unsigned char *selector, unsigned selectorLength);
+	void setTransactionId(unsigned id);
+	void setTimeout(unsigned timeout);
+	void setPrivateData(unsigned char *privateData, unsigned privateDataLength);
+};
+$#include "CarouselIdentifierDescriptor.h"
+
+class CarouselIdentifierDescriptor : public Descriptor{
+public:
+	static const unsigned TAG;
+	
+	/*CarouselIdentifierDescriptor(unsigned char *d, unsigned l);*/
+	CarouselIdentifierDescriptor();
+	
+	unsigned getCarouselId() const;
+	unsigned getFormatId() const;
+	
+	void setCarouselId(unsigned id) const;
+	void setFormatId(unsigned id) const;
+};
+
+$#include "DataBroadcastIdDescriptor.h"
+
+class DataBroadcastIdDescriptor : public Descriptor {
+public:
+	static const unsigned TAG;
+	
+	/*DataBroadcastIdDescriptor(unsigned char *d, unsigned l);*/
+	DataBroadcastIdDescriptor();
+	
+	unsigned getDataBroadcastId() const;
+	unsigned char *getSelectorBytes(unsigned &selectorLength) const;
+	
+	void setDataBroadcastId(unsigned id);
+	void setSelectorBytes(unsigned char *selectorBytes, unsigned selectorLength);
+};
+$#include "StreamIdentifierDescriptor.h"
+
+class StreamIdentifierDescriptor : public Descriptor {
+public:
+	static const unsigned TAG;
+	
+	/*StreamIdentifierDescriptor(unsigned char *d);*/
+	StreamIdentifierDescriptor();
+	
+	/* --- decoding --- */
+	
+	unsigned getComponentTag() const;
+	
+	/* --- coding --- */
+	
+	void setComponentTag(unsigned tag);
+};

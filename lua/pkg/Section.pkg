@@ -1,0 +1,18 @@
+$#include "Section.h"
+
+class Section : public Chunk {
+	/*Section(unsigned char *d, unsigned l);*/
+	Section();
+	~Section();
+	
+	/* --- section decoding --- */
+	
+	unsigned getTableId() const; /* 8 */
+	bool getSectionSyntaxIndicator() const; /* 1 */
+	bool getPrivateIndicator() const; /* 1 */
+	unsigned getSectionLength() const; /* 12 */
+	
+	/* --- section coding --- */
+	
+	void setSectionLength(unsigned length); /* 12 */
+};

@@ -1,0 +1,15 @@
+$#include "Descriptor.h"
+
+class Descriptor : public Chunk {
+public:
+	static const unsigned MAX_LENGTH;
+	
+	/*Descriptor(unsigned char *d, unsigned l);*/
+	Descriptor(unsigned char *d);
+	Descriptor();
+	~Descriptor();
+	
+	/* decoding */
+	unsigned getDescriptorTag() const; /* 8 */
+	unsigned getDescriptorLength() const; /* 8 */
+};

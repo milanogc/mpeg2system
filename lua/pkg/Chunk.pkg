@@ -1,0 +1,13 @@
+$#include "Chunk.h"
+
+class Chunk {
+	Chunk(unsigned char *d, unsigned l);
+	virtual ~Chunk();
+	
+	unsigned char *getData() const;
+	bool isAllocated() const;
+	void setData(unsigned char *d, unsigned l = 0);
+	virtual unsigned getDataLength() const;
+	virtual void finalize();
+	virtual bool verify() const;
+};

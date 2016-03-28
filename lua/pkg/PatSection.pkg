@@ -1,0 +1,34 @@
+$#include "PatSection.h"
+
+class PatSection : public PsiSection {
+	class Program : public Chunk {
+		/*Program(unsigned char *d);*/
+		Program();
+		~Program();
+		
+		/* --- decoding --- */
+		
+		unsigned getProgramNumber() const; /* 16 */
+		int getPid() const; /* 13 */
+		
+		/* --- coding --- */
+		
+		void setProgramNumber(unsigned number); /* 16 */
+		void setPid(int pid); /* 13 */
+	};
+	
+	/*PatSection(unsigned char *d, unsigned l);*/
+	PatSection();
+	~PatSection();
+	
+	Iterator<Program> *getProgramsIterator() const;
+	
+	/* --- decoding --- */
+	
+	unsigned getTransportStreamId() const;
+	
+	/* --- coding --- */
+	
+	void setTransportStreamId(unsigned id);
+	void appendProgram(unsigned char *programData, unsigned programDataLength);
+};

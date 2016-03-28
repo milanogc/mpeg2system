@@ -1,0 +1,8 @@
+ReMux API
+
+TODO:
+	Document classes and methods.
+	The C++ header files must have .hpp extensions instead of .h.
+
+GUIDE:
+	* In the implementation files (i.e *.cpp ones) the include must start with users classes and after that the standard includes must be included.

@@ -1,0 +1,44 @@
+$#include "PmtSection.h"
+
+class PmtSection : public PsiSection {
+	class Stream : public Chunk {
+		/*Stream(unsigned char *d, unsigned l);
+		Stream(unsigned char *d);*/
+		Stream();
+		
+		/* --- decoding --- */
+		
+		unsigned getStreamType() const; /* 8 */
+		int getElementaryPid() const; /* 13 */
+		unsigned getEsInfoLength() const; /* 12 */
+		Iterator<Descriptor> *getDescriptorsIterator() const;
+		
+		/* --- coding --- */
+		
+		void setStreamType(unsigned type); /* 8 */
+		void setElementaryPid(int pid); /* 13 */
+		void setEsInfoLength(unsigned length); /* 12 */
+		void appendDescriptor(unsigned char *descriptorData, unsigned descriptorDataLength);
+		void appendDescriptor(Descriptor &descriptorData);
+	};
+	
+	/*PmtSection(unsigned char *d, unsigned l);*/
+	PmtSection();
+	
+	/* --- decoding --- */
+	
+	unsigned getProgramNumber() const;
+	int getPcrPid() const;
+	unsigned getProgramInfoLength() const;
+	Iterator<Descriptor> *getDescriptorsIterator() const;
+	Iterator<Stream> *getStreamsIterator() const;
+	
+	/* --- coding --- */
+	
+	void setProgramNumber(unsigned id); /* 16 */
+	void setPcrPid(int pid);
+	void setProgramInfoLength(unsigned length);
+	void appendDescriptor(unsigned char *descriptorData, unsigned descriptorLength);
+	void appendStream(unsigned char *streamData, unsigned streamLength);
+	void appendStream(Stream &stream);
+};

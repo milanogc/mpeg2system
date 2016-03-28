@@ -1,0 +1,15 @@
+$#include "DataBroadcastIdDescriptor.h"
+
+class DataBroadcastIdDescriptor : public Descriptor {
+public:
+	static const unsigned TAG;
+	
+	/*DataBroadcastIdDescriptor(unsigned char *d, unsigned l);*/
+	DataBroadcastIdDescriptor();
+	
+	unsigned getDataBroadcastId() const;
+	unsigned char *getSelectorBytes(unsigned &selectorLength) const;
+	
+	void setDataBroadcastId(unsigned id);
+	void setSelectorBytes(unsigned char *selectorBytes, unsigned selectorLength);
+};

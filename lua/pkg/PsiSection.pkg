@@ -1,0 +1,20 @@
+$#include "PsiSection.h"
+
+class PsiSection : public Section {
+	/*PsiSection(unsigned char *d, unsigned l);*/
+	PsiSection();
+	~PsiSection();
+	
+	unsigned getTableIdExtension() const; /* 16 */
+	unsigned getVersionNumber() const; /* 5 */
+	bool getCurrentNextIndicator() const; /* 1 */
+	unsigned getSectionNumber() const; /* 8 */
+	unsigned getLastSectionNumber() const; /* 8 */
+	unsigned getCrc32() const; /* 32 */
+	
+	virtual void setTableIdExtension(unsigned id); /* 16 */
+	void setVersionNumber(unsigned version); /* 5 */
+	void setCurrentNextIndicator(bool indicator); /* 1 */
+	void setSectionNumber(unsigned number); /* 8 */
+	void setLastSectionNumber(unsigned number); /* 8 */
+};

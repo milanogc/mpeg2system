@@ -1,0 +1,17 @@
+$#include "StreamIdentifierDescriptor.h"
+
+class StreamIdentifierDescriptor : public Descriptor {
+public:
+	static const unsigned TAG;
+	
+	/*StreamIdentifierDescriptor(unsigned char *d);*/
+	StreamIdentifierDescriptor();
+	
+	/* --- decoding --- */
+	
+	unsigned getComponentTag() const;
+	
+	/* --- coding --- */
+	
+	void setComponentTag(unsigned tag);
+};

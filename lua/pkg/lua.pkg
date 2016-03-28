@@ -1,0 +1,29 @@
+$[
+do
+	local function constructor(class, ...)
+		return class:new_local(unpack(arg))
+	end
+	
+	local function addConstructor(class)
+		local mt = getmetatable(class)
+		
+		if mt and not rawget(mt, "__call") then
+			rawset(mt, "__call", constructor)
+		end
+	end
+	
+	addConstructor(Chunk)
+	addConstructor(TSPacket)
+	addConstructor(PesPacket)
+	addConstructor(Descriptor)
+	addConstructor(Section)
+	addConstructor(PsiSection)
+	addConstructor(PatSection)
+	addConstructor(PmtSection)
+	addConstructor(ApplicationSignallingDescriptor)
+	addConstructor(AssociationTagDescriptor)
+	addConstructor(CarouselIdentifierDescriptor)
+	addConstructor(DataBroadcastIdDescriptor)
+	addConstructor(StreamIdentifierDescriptor)
+end
+$]
